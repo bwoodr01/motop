@@ -153,3 +153,7 @@ Motop 4.1
 Motop 4.2
 
 * Support installation with `pip`
+
+Motop 4.3
+
+* Global realtime console output 
