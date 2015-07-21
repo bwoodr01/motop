@@ -48,6 +48,7 @@ def parseArguments():
     parser.add_argument('-c', '--conf', dest='conf', default=configFile,
             help='path of configuration file')
     parser.add_argument('-V', '--version', action='version', version=version())
+    parser.add_argument('-S', '--shard-members', dest='shard-members', help='comma separated list of hosts from different shards, one host per shard')
     parser.add_argument('-K', '--auto-kill', dest='autoKillSeconds',
             help='seconds to kill operations automatically')
     return parser.parse_args()
@@ -60,10 +61,12 @@ def commonServers(config, arguments):
             if section == host:
                 servers.append(Server(section, **dict(config.items(section))))
     if servers:
+        #print "AAAAAA"
         return servers
 
     """Second use the servers on the config."""
     if config.sections():
+        #print "BBBBBB"
         return [Server(section, **dict(config.items(section))) for section in config.sections()]
 
     """Third use the servers on the arguments."""
@@ -73,23 +76,31 @@ def run():
     """Get the arguments and parse the config file. Activate console. Get servers from the config file
     or from arguments. Show the query screen."""
     arguments = parseArguments()
+
+    #print "arguments are: " + str(arguments)
     config = SafeConfigParser({'username': arguments.username, 'password': arguments.password})
+    #print "config is: " + str(config)
     config.read(arguments.conf)
     servers = commonServers(config, arguments)
+    #print "servers are: " + str(servers)
 
     chosenServers = {}
     for choice in choices:
+        #print "choice is: " + str(choice)
+        #print "sections are: " + str(config.sections())
         if config.sections():
             chosenServers[choice] = []
             for server in servers:
+                #print "ONEEEEEEE"
                 if not config.has_option(str(server), choice) or config.getboolean(str(server), choice):
                     chosenServers[choice].append(server)
         else:
             chosenServers[choice] = servers
+            #print "chosenServers are: "
+            #print chosenServers
 
     with Console() as console:
         queryScreen = QueryScreen(console, chosenServers, autoKillSeconds=arguments.autoKillSeconds)
         try:
             queryScreen.action()
         except KeyboardInterrupt: pass
-
